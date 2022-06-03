@@ -1,11 +1,10 @@
 import { useState } from "react";
-
+import { useNavigate } from "react-router-dom";
 import FormInput from "../form-input/form-input";
 import Button from "../button/button";
 
 import {
   signInWithGooglePopup,
-  createUserDocumentFromAuth,
   signInAuthUserWithEmailAndPassword,
 } from "../../utils/firebase/firebase.utils";
 
@@ -19,37 +18,27 @@ const defaultFormFields = {
 const SignInForm = () => {
   const [formFields, setFormFields] = useState(defaultFormFields);
   const { email, password } = formFields;
+  const navigate = useNavigate();
 
   const resetFormFields = () => {
     setFormFields(defaultFormFields);
   };
 
   const signInWithGoogle = async () => {
-    const { user } = await signInWithGooglePopup();
-    await createUserDocumentFromAuth(user);
+    await signInWithGooglePopup();
+    resetFormFields();
+    navigate("/");
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
     try {
-      const response = await signInAuthUserWithEmailAndPassword(
-        email,
-        password
-      );
-      console.log(response);
+      await signInAuthUserWithEmailAndPassword(email, password);
       resetFormFields();
+      navigate("/");
     } catch (error) {
-      switch (error.code) {
-        case "auth/wrong-password":
-          alert("incorrect password for email");
-          break;
-        case "auth/user-not-found":
-          alert("no user associated with this email");
-          break;
-        default:
-          console.log(error);
-      }
+      console.log("user sign in failed", error);
     }
   };
 
